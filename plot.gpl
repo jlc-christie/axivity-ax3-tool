@@ -1,0 +1,24 @@
+set datafile separator ","
+set key autotitle columnhead
+set xdata time
+set timefmt "%Y-%m-%d %H:%M:%S"
+set format x "%m/%d"
+set grid
+set title "Light Data"
+set xlabel "Timestamp"
+set ylabel "Light Reading"
+
+plot filename using 1:2 with lines
+
+if (exists("outfile")) {
+	set term postscript 
+	set output outfile.".ps"
+	replot
+
+	set term png
+	set output outfile.".png"
+	replot
+}
+
+set term x11
+
