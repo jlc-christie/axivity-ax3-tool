@@ -1,7 +1,6 @@
 # Axivity AX3 Light and Temperature Extractor
 
-A tool created to extract the raw light and temperature data from Axivity AX3 wrist-worn accelerometers (as used in the UK Biobank). 
-
+A tool created to extract the raw light and temperature data from Axivity AX3 wrist-worn accelerometers (as used in the UK Biobank). This was created whilst working at the Complex Trait Genomics team at the University of Exeter Medical School. 
 Features:
 - convert large .cwa binary files to .csv 
 - light data extraction
