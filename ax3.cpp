@@ -90,22 +90,22 @@ void summarise_individual(string biobank_id, vector<cwa_timestamp> &cwa_timestam
   float sd = 0.0;
   //float median = 0.0;
   map<int, vector<double>> hourly_temps;
-
+  
   total_mean = mean(temperatures);
   sd = stdDev(temperatures);
   //median = temperatures[(int) temperatures.size()/2];
-
+  
   for (int i = 0; i < temperatures.size(); ++i) {
     cwa_timestamp ts = cwa_timestamps[i];
     int hour = ts.hours;
     hourly_temps[hour].push_back(temperatures[i]);
   }
-
+  
   ofstream summary_file;
   summary_file.open(summary_filename, fstream::app);
 
   summary_file << biobank_id << "," << to_string(total_mean) << "," << to_string(sd) << ",";
-
+  
   for (int i = 0; i < 24; ++i) {
     try {
       float temp_mean = mean(hourly_temps[i]);
@@ -124,7 +124,6 @@ void summarise_individual(string biobank_id, vector<cwa_timestamp> &cwa_timestam
       cerr << "Error occured" << endl;
     }
   }
-
   summary_file.close();
 }
 
@@ -204,7 +203,7 @@ void show_header_details(OM_READER_HEADER_PACKET &header) {
 /*
  * This and read_light_data are essentially the same, should refactor them together in to a more generic function
  */
-void read_temp_data(ifstream &file, vector<uint16_t> &temps, vector<string> &timestamps) {
+void read_temp_data(ifstream &file, vector<uint16_t> &temps, vector<string> &timestamps, vector<cwa_timestamp> &cwa_timestamps) {
   // Read data blocks until nothing is left
   while (file.peek() != EOF) {
     char data_buffer[512];
@@ -232,6 +231,7 @@ void read_temp_data(ifstream &file, vector<uint16_t> &temps, vector<string> &tim
                                                          timestamp.mins,
                                                          timestamp.seconds);
     timestamps.push_back(timestamp_string);
+    cwa_timestamps.push_back(timestamp);
   }
 }
 
@@ -246,7 +246,7 @@ void read_light_data(ifstream &file, vector<uint16_t> &light, vector<string> &ti
 
     memcpy(&lux, data_buffer + 18, 2);  // Extract Light value from data block
     memcpy(&raw_timestamp, data_buffer + 14, 4); // Extract timestamp
-    // No point trying to convert to lux (for BiobankUK Data), light sensor was partially covered 
+    // No point trying to convert to lux (for UKBiobank Data), light sensor was partially covered 
     //double log10LuxTimes10Power3 = ((lux + 512.0) * 6000 / 1024);
     //lux = pow(10.0, log10LuxTimes10Power3 / 1000.0); // In lux, supposedly
     light.push_back(lux);
@@ -410,6 +410,7 @@ int main(int argc, char* argv[]) {
   bool in_set = false;
   bool out_set = false;
   bool use_sma = false;
+  bool sum_stats = false;
   uint16_t win_size = 50;
   
 
@@ -442,7 +443,8 @@ int main(int argc, char* argv[]) {
 	++i;
 	break;
       case 's':
-	//sum_filename = string(argv[i+1]).substr(string(argv[i+1]).end()-3, string(argv[i+1]).end());
+	sum_stats = true;
+	sum_filename = string(argv[i+1]);
 	++i;
 	break;
       case 'a':
@@ -488,7 +490,7 @@ int main(int argc, char* argv[]) {
   vector<cwa_timestamp> cwa_timestamps;
 
   if (temp_mode) {
-    read_temp_data(aws_file, temperatures, timestamps);
+    read_temp_data(aws_file, temperatures, timestamps, cwa_timestamps);
   } else {
     read_light_data(aws_file, light, timestamps);
   }
@@ -511,9 +513,10 @@ int main(int argc, char* argv[]) {
       save_light_to_file(light, timestamps, out_filename);
     }
   }
-
-  string sum = "/gpfs/mrc0/projects/Research_Project-MRC158833/jlcc201/sumstats/" + sum_filename;
-  //summarise_individual(biobank_id, cwa_timestamps, temperatures, sum);
+  
+  if (sum_stats) { 
+    summarise_individual(biobank_id, cwa_timestamps, temperatures, sum_filename);
+  }
 
   aws_file.close();
 
