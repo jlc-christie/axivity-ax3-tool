@@ -11,8 +11,10 @@ Features:
 - framework exists to extract other data such as raw accelerometer readings 
 
 ## Install
-1. clone this repo (git clone https://github.com/jlc-christie/axivity-ax3-tool.git) 
-2. compile with prefered c++11 compatible compiler (g++ ax3.cpp -o ax3 -O3)
+1. clone this repo \
+   `git clone https://github.com/jlc-christie/axivity-ax3-tool.git` 
+2. compile with prefered c++11 compatible compiler \
+   e.g. `g++ ax3.cpp -o ax3 -O3`, if using g++
 
 ## Example Usage
 Extract the **`light (-l)`** data from the input file **`my_raw_data_file.cwa`**, use a central moving average **(`-a`)** of 5 minutes (300 seconds) and save the output to **`light_data.csv`**. Also, append summary statistics about the light data to the file **`summary_statistics.csv`**.
