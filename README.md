@@ -11,8 +11,10 @@ Features:
 - framework exists to extract other data such as raw accelerometer readings 
 
 ## Install
-1. clone this repo (git clone https://github.com/jlc-christie/axivity-ax3-tool.git) 
-2. compile with prefered c++11 compatible compiler (g++ ax3.cpp -o ax3 -O3)
+1. clone this repo \
+   `git clone https://github.com/jlc-christie/axivity-ax3-tool.git` 
+2. compile with prefered c++11 compatible compiler \
+   e.g. `g++ ax3.cpp -o ax3 -O3`, if using g++
 
 ## Example Usage
 Extract the **`light (-l)`** data from the input file **`my_raw_data_file.cwa`**, use a central moving average **(`-a`)** of 5 minutes (300 seconds) and save the output to **`light_data.csv`**. Also, append summary statistics about the light data to the file **`summary_statistics.csv`**.
@@ -31,3 +33,11 @@ Examples:
 3. Don't display interactive plot, just save images to files \
    `gnuplot -e "filename='out.csv';outfile='my_plot'" plot.gpl`
    
+## Summary Statistics
+As mentioned above, the `-s` flag followed by a summary file filename, will calculate the mean and standard deviation of light or temperature (depending on which mode it is in) for the whole day as well as hourly. Because this functionality is meant to be used as part of a batch script which appends to the same file, there is **no header**. The data is comma seperated and the format is as follows:
+
+| filename | mean | std_dev | hour_0_mean | hour_0_std_dev | hour_1_mean | hour_1_std_dev | ... | hour_23_mean | hour_23_std_dev
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 27492749 | 20.558 | 1.381 | 21.550 | 1.656 | 21.229 | 1.524 | ... | 20.972 | 1.120 |
+
+
