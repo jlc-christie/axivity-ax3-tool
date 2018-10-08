@@ -19,3 +19,15 @@ Extract the **`light (-l)`** data from the input file **`my_raw_data_file.cwa`**
 ```
 ./ax3 -l -i my_raw_data_file.cwa -o light_data.csv -a 300 -s summary_statistics.csv
 ```
+
+## Plotting 
+This repo also contains a small gnuplot script to either interactively plot the results or save the plots to files. Use `-e "filename='out.csv'"` to pass in the data file, making sure that the -e flag comes **before** the script file. Append `-p` to display the interactive plot and finally pass another argument `outfile` if you want the plots to be saved to a file (recommended, as interactive plot is relatively slow). 
+Examples:
+1. Display interactive plot, don't save plot images \
+   `gnuplot -e "filename='out.csv'" plot.gpl -p`
+2. Display interactive plot **and** save plot images \
+   `gnuplot -e "filename='out.csv';outfile='my_plot'" plot.gpl -p` \
+   *creates 2 files, `my_plot.png` and `my_plot.ps`, ps can be converted easily to pdf if required (e.g. `ps2pdf my_plot.ps my_plot.pdf`)*
+3. Don't display interactive plot, just save images to files \
+   `gnuplot -e "filename='out.csv';outfile='my_plot'" plot.gpl`
+   
