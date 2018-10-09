@@ -83,6 +83,10 @@ float stdDev(vector<T> vec) {
   return stdev;
 }
 
+/*
+ * The vector temperatures here can be light or temperature, just called temperature as that's 
+ * what it was initally for
+ * */
 template <typename T>
 void summarise_individual(string biobank_id, vector<cwa_timestamp> &cwa_timestamps,
                           vector<T> &temperatures, string summary_filename) {
@@ -90,7 +94,6 @@ void summarise_individual(string biobank_id, vector<cwa_timestamp> &cwa_timestam
   float sd = 0.0;
   //float median = 0.0;
   map<int, vector<double>> hourly_temps;
-  
   total_mean = mean(temperatures);
   sd = stdDev(temperatures);
   //median = temperatures[(int) temperatures.size()/2];
@@ -235,7 +238,7 @@ void read_temp_data(ifstream &file, vector<uint16_t> &temps, vector<string> &tim
   }
 }
 
-void read_light_data(ifstream &file, vector<uint16_t> &light, vector<string> &timestamps) {
+void read_light_data(ifstream &file, vector<uint16_t> &light, vector<string> &timestamps, vector<cwa_timestamp> &cwa_timestamps) {
   while (file.peek() != EOF) {
     char data_buffer[512];
     file.read(data_buffer, 512);
@@ -259,7 +262,7 @@ void read_light_data(ifstream &file, vector<uint16_t> &light, vector<string> &ti
                                                          timestamp.hours,
                                                          timestamp.mins,
                                                          timestamp.seconds);
-
+    cwa_timestamps.push_back(timestamp);
     timestamps.push_back(timestamp_string);
   }
 }
@@ -434,7 +437,8 @@ int main(int argc, char* argv[]) {
       case 'i':
 	in_filename = string(argv[i+1]);
 	in_set = true;
-	biobank_id = in_filename.substr(0, in_filename.find("_"));
+	biobank_id = in_filename.substr(in_filename.find_last_of("/")+1, string::npos);
+	biobank_id = biobank_id.substr(0, biobank_id.find("_"));
 	++i;
 	break;
       case 'o':
@@ -445,6 +449,7 @@ int main(int argc, char* argv[]) {
       case 's':
 	sum_stats = true;
 	sum_filename = string(argv[i+1]);
+	cout << "sum_filename :" << sum_filename << endl;
 	++i;
 	break;
       case 'a':
@@ -495,7 +500,7 @@ int main(int argc, char* argv[]) {
   if (temp_mode) {
     read_temp_data(aws_file, temperatures, timestamps, cwa_timestamps);
   } else {
-    read_light_data(aws_file, light, timestamps);
+    read_light_data(aws_file, light, timestamps, cwa_timestamps);
   }
 
 
@@ -517,8 +522,12 @@ int main(int argc, char* argv[]) {
     }
   }
   
-  if (sum_stats) { 
-    summarise_individual(biobank_id, cwa_timestamps, temperatures, sum_filename);
+  if (sum_stats) {
+    if (temp_mode) {
+      summarise_individual(biobank_id, cwa_timestamps, temperatures, sum_filename);
+    } else {
+      summarise_individual(biobank_id, cwa_timestamps, light, sum_filename);
+    } 
   }
 
   aws_file.close();
