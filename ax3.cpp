@@ -461,13 +461,16 @@ int main(int argc, char* argv[]) {
   }
 
   if (!mode_set) {
-    cerr << "error: mode not set, use -t for temperature, -l for light" << endl;
+    cerr << "error: mode not set, use -t for temperature, -l for light" << endl << endl;
+    print_usage();
     exit(1);
   } else if (!in_set) {
-    cerr << "error: no input file given" << endl;
+    cerr << "error: no input file given" << endl << endl;
+    print_usage();
     exit(1);
   } else if (!out_set) {
-    cerr << "error: no output file given" << endl;
+    cerr << "error: no output file given" << endl << endl;
+    print_usage();
     exit(1);
   }
 
