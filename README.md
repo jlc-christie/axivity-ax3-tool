@@ -37,7 +37,7 @@ Examples:
 As mentioned above, the `-s` flag followed by a summary file filename, will calculate the mean and standard deviation of light or temperature (depending on which mode it is in) for the whole day as well as hourly. Because this functionality is meant to be used as part of a batch script which appends to the same file, there is **no header**. The data is comma seperated and the format is as follows:
 
 | filename | mean | iqr | std_dev | hour_0_mean | hour_0_std_dev | hour_1_mean | hour_1_std_dev | ... | hour_23_mean | hour_23_std_dev
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | 27492749 | 20.558 | 120.000 |1.381 | 21.550 | 1.656 | 21.229 | 1.524 | ... | 20.972 | 1.120 |
 
 
