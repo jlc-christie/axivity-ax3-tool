@@ -61,6 +61,17 @@ struct OM_READER_DATA_PACKET {
 };
 
 template <typename T>
+float percentile(vector<T> vec, float p) {
+  vector<T> copy = vec;
+  sort(copy.begin(), copy.end());
+  size_t n = copy.size();
+  size_t index = (size_t) float(n)*p;
+  
+  return copy[index];
+}
+
+
+template <typename T>
 float mean(vector<T> vec) {
   float sum = accumulate(begin(vec), end(vec), 0.0);
   float mean =  sum / vec.size();
@@ -92,11 +103,11 @@ void summarise_individual(string biobank_id, vector<cwa_timestamp> &cwa_timestam
                           vector<T> &temperatures, string summary_filename) {
   float total_mean = 0.0;
   float sd = 0.0;
-  //float median = 0.0;
+  float iqr = 0.0;
   map<int, vector<double>> hourly_temps;
   total_mean = mean(temperatures);
   sd = stdDev(temperatures);
-  //median = temperatures[(int) temperatures.size()/2];
+  iqr = percentile(temperatures, 0.75) - percentile(temperatures, 0.25);
   
   for (int i = 0; i < temperatures.size(); ++i) {
     cwa_timestamp ts = cwa_timestamps[i];
@@ -107,17 +118,15 @@ void summarise_individual(string biobank_id, vector<cwa_timestamp> &cwa_timestam
   ofstream summary_file;
   summary_file.open(summary_filename, fstream::app);
 
-  summary_file << biobank_id << "," << to_string(total_mean) << "," << to_string(sd) << ",";
+  summary_file << biobank_id << "," << to_string(total_mean) << "," << to_string(sd) << "," << to_string(iqr) << ",";
   
   for (int i = 0; i < 24; ++i) {
     try {
       float temp_mean = mean(hourly_temps[i]);
       float temp_sd = stdDev(hourly_temps[i]);
-      //float temp_med = hourly_temps[i][(int) hourly_temps[i].size()/2];
 
       summary_file << temp_mean << ",";
       summary_file << temp_sd;
-      //summary_file << temp_med;
       if (i == 23) {
         summary_file << "\n";
       } else {
@@ -449,7 +458,6 @@ int main(int argc, char* argv[]) {
       case 's':
 	sum_stats = true;
 	sum_filename = string(argv[i+1]);
-	cout << "sum_filename :" << sum_filename << endl;
 	++i;
 	break;
       case 'a':
