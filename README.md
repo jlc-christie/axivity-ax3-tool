@@ -33,6 +33,10 @@ Examples:
 3. Don't display interactive plot, just save images to files \
    `gnuplot -e "filename='out.csv';outfile='my_plot'" plot.gpl`
    
+Example output from plot:
+
+![alt text](sample_plot.png "sample plot image")
+   
 ## Summary Statistics
 As mentioned above, the `-s` flag followed by a summary file filename, will calculate the mean and standard deviation of light or temperature (depending on which mode it is in) for the whole day as well as hourly. Because this functionality is meant to be used as part of a batch script which appends to the same file, there is **no header**. The data is comma seperated and the format is as follows:
 
