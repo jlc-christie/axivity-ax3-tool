@@ -16,7 +16,17 @@ Features:
 2. compile with prefered c++11 compatible compiler \
    e.g. `g++ ax3.cpp -o ax3 -O3`, if using g++
 
-## Example Usage
+## Usage
+```
+./ax3 (-l|-t)  -i <input file> -o <output file> [-a <window size>] [-s <summary file>]
+    -l -- Light mode
+    -t -- Temperature mode
+    -i -- Path to .cwa input file
+    -o -- path to .csv output file to be generated
+    -a -- Use Central Moving Average on data read
+    -s -- Calculate summary statistics
+```
+### Example:
 Extract the **`light (-l)`** data from the input file **`my_raw_data_file.cwa`**, use a central moving average **(`-a`)** of 5 minutes (300 seconds) and save the output to **`light_data.csv`**. Also, append summary statistics about the light data to the file **`summary_statistics.csv`**.
 ```
 ./ax3 -l -i my_raw_data_file.cwa -o light_data.csv -a 300 -s summary_statistics.csv
