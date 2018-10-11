@@ -61,6 +61,17 @@ struct OM_READER_DATA_PACKET {
 };
 
 template <typename T>
+float percentile(vector<T> vec, float p) {
+  vector<T> copy = vec;
+  sort(copy.begin(), copy.end());
+  size_t n = copy.size();
+  size_t index = (size_t) float(n)*p;
+  
+  return copy[index];
+}
+
+
+template <typename T>
 float mean(vector<T> vec) {
   float sum = accumulate(begin(vec), end(vec), 0.0);
   float mean =  sum / vec.size();
@@ -83,17 +94,20 @@ float stdDev(vector<T> vec) {
   return stdev;
 }
 
+/*
+ * The vector temperatures here can be light or temperature, just called temperature as that's 
+ * what it was initally for
+ * */
 template <typename T>
 void summarise_individual(string biobank_id, vector<cwa_timestamp> &cwa_timestamps,
                           vector<T> &temperatures, string summary_filename) {
   float total_mean = 0.0;
   float sd = 0.0;
-  //float median = 0.0;
+  float iqr = 0.0;
   map<int, vector<double>> hourly_temps;
-  
   total_mean = mean(temperatures);
   sd = stdDev(temperatures);
-  //median = temperatures[(int) temperatures.size()/2];
+  iqr = percentile(temperatures, 0.75) - percentile(temperatures, 0.25);
   
   for (int i = 0; i < temperatures.size(); ++i) {
     cwa_timestamp ts = cwa_timestamps[i];
@@ -104,17 +118,15 @@ void summarise_individual(string biobank_id, vector<cwa_timestamp> &cwa_timestam
   ofstream summary_file;
   summary_file.open(summary_filename, fstream::app);
 
-  summary_file << biobank_id << "," << to_string(total_mean) << "," << to_string(sd) << ",";
+  summary_file << biobank_id << "," << to_string(total_mean) << "," << to_string(sd) << "," << to_string(iqr) << ",";
   
   for (int i = 0; i < 24; ++i) {
     try {
       float temp_mean = mean(hourly_temps[i]);
       float temp_sd = stdDev(hourly_temps[i]);
-      //float temp_med = hourly_temps[i][(int) hourly_temps[i].size()/2];
 
       summary_file << temp_mean << ",";
       summary_file << temp_sd;
-      //summary_file << temp_med;
       if (i == 23) {
         summary_file << "\n";
       } else {
@@ -235,7 +247,7 @@ void read_temp_data(ifstream &file, vector<uint16_t> &temps, vector<string> &tim
   }
 }
 
-void read_light_data(ifstream &file, vector<uint16_t> &light, vector<string> &timestamps) {
+void read_light_data(ifstream &file, vector<uint16_t> &light, vector<string> &timestamps, vector<cwa_timestamp> &cwa_timestamps) {
   while (file.peek() != EOF) {
     char data_buffer[512];
     file.read(data_buffer, 512);
@@ -259,7 +271,7 @@ void read_light_data(ifstream &file, vector<uint16_t> &light, vector<string> &ti
                                                          timestamp.hours,
                                                          timestamp.mins,
                                                          timestamp.seconds);
-
+    cwa_timestamps.push_back(timestamp);
     timestamps.push_back(timestamp_string);
   }
 }
@@ -434,7 +446,8 @@ int main(int argc, char* argv[]) {
       case 'i':
 	in_filename = string(argv[i+1]);
 	in_set = true;
-	biobank_id = in_filename.substr(0, in_filename.find("_"));
+	biobank_id = in_filename.substr(in_filename.find_last_of("/")+1, string::npos);
+	biobank_id = biobank_id.substr(0, biobank_id.find("_"));
 	++i;
 	break;
       case 'o':
@@ -461,13 +474,16 @@ int main(int argc, char* argv[]) {
   }
 
   if (!mode_set) {
-    cerr << "error: mode not set, use -t for temperature, -l for light" << endl;
+    cerr << "error: mode not set, use -t for temperature, -l for light" << endl << endl;
+    print_usage();
     exit(1);
   } else if (!in_set) {
-    cerr << "error: no input file given" << endl;
+    cerr << "error: no input file given" << endl << endl;
+    print_usage();
     exit(1);
   } else if (!out_set) {
-    cerr << "error: no output file given" << endl;
+    cerr << "error: no output file given" << endl << endl;
+    print_usage();
     exit(1);
   }
 
@@ -492,7 +508,7 @@ int main(int argc, char* argv[]) {
   if (temp_mode) {
     read_temp_data(aws_file, temperatures, timestamps, cwa_timestamps);
   } else {
-    read_light_data(aws_file, light, timestamps);
+    read_light_data(aws_file, light, timestamps, cwa_timestamps);
   }
 
 
@@ -514,8 +530,12 @@ int main(int argc, char* argv[]) {
     }
   }
   
-  if (sum_stats) { 
-    summarise_individual(biobank_id, cwa_timestamps, temperatures, sum_filename);
+  if (sum_stats) {
+    if (temp_mode) {
+      summarise_individual(biobank_id, cwa_timestamps, temperatures, sum_filename);
+    } else {
+      summarise_individual(biobank_id, cwa_timestamps, light, sum_filename);
+    } 
   }
 
   aws_file.close();
